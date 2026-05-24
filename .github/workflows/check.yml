@@ -37,8 +37,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain snapshot.txt snapshot.hash)" ]; then
-            git add snapshot.txt snapshot.hash
+          if [ -n "$(git status --porcelain snapshot.json)" ]; then
+            git add snapshot.json
             git commit -m "Update snapshot $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
             git push
           else
