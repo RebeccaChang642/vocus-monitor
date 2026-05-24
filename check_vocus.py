@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 from playwright.sync_api import sync_playwright
 
 # ====== 設定區 ======
-TARGET_URL = "https://vocus.cc/salon/mrtuimi/plans/content?roomIds=65fe8208fd8978000162ec44"
+TARGET_URL = "https://vocus.cc/salon/mrtuimi/plans/content"
 SNAPSHOT_FILE = Path("snapshot.txt")
 HASH_FILE = Path("snapshot.hash")
 
