@@ -48,8 +48,8 @@ def fetch_page_text() -> str:
             )
         )
         page = context.new_page()
-        page.goto(TARGET_URL, wait_until="networkidle", timeout=60000)
-        page.wait_for_timeout(3000)
+        page.goto(TARGET_URL, wait_until="domcontentloaded", timeout=60000)
+        page.wait_for_timeout(8000)  # 等 JS 渲染完成
         text = page.inner_text("body")
         browser.close()
 
