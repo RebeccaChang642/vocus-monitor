@@ -20,6 +20,7 @@ SNAPSHOT_FILE = Path("snapshot.json")
 
 LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
 LINE_USER_ID = os.environ.get("LINE_USER_ID")
+SEND_DAILY_REPORT = os.environ.get("SEND_DAILY_REPORT", "false").lower() == "true"
 
 PLANS = ["宋元秘占篇", "甲辰年雜說"]
 
@@ -122,6 +123,24 @@ def main():
         print(f"[status] {plan}：{status}")
 
     old_statuses = load_snapshot()
+
+    # 日報模式 → 不管有沒有變動，直接發昨日彙報
+    if SEND_DAILY_REPORT and old_statuses:
+        now_dt = datetime.now(ZoneInfo("Asia/Taipei"))
+        yesterday = (now_dt.replace(hour=0, minute=0, second=0)
+                     .strftime("%Y-%m-%d"))
+        plan_lines = "\n\n".join(
+            f"🎯 {plan}：{status_emoji(new_statuses[plan])}"
+            for plan in PLANS
+        )
+        send_line_message(
+            f"📊 每日監控報告\n"
+            f"⏰ 報告時間：{now}\n"
+            f"📅 昨日 ({yesterday}) 全日無名額釋出\n\n"
+            f"{plan_lines}"
+        )
+        save_snapshot(new_statuses)
+        return
 
     # 第一次執行 → 建立基準並發送啟動通知
     if not old_statuses:
