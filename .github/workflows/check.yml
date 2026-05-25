@@ -3,11 +3,16 @@ name: Vocus Page Monitor
 on:
   schedule:
     - cron: "*/30 * * * *"   # 每 30 分鐘監控
-    - cron: "0 1 * * *"       # 每天 UTC 01:00 = 台灣時間 09:00 發日報
+    - cron: "7 1 * * *"       # 每天 UTC 01:07 = 台灣時間 09:07 發日報（避開整點壅塞，較不會被 GitHub 丟掉）
   workflow_dispatch:
 
 permissions:
   contents: write
+
+# 同一時間只跑一個 run，避免兩個 run 同時 commit 造成 push 衝突或重複發報
+concurrency:
+  group: vocus-monitor
+  cancel-in-progress: false
 
 jobs:
   check:
@@ -31,17 +36,18 @@ jobs:
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
-          SEND_DAILY_REPORT: ${{ github.event.schedule == '0 1 * * *' }}
+          SEND_DAILY_REPORT: ${{ github.event.schedule == '7 1 * * *' }}
         run: python check_vocus.py
 
-      - name: Commit snapshot if changed
+      - name: Commit state if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if [ -n "$(git status --porcelain snapshot.json)" ]; then
-            git add snapshot.json
-            git commit -m "Update snapshot $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          if [ -n "$(git status --porcelain snapshot.json state.json)" ]; then
+            git add snapshot.json state.json
+            git commit -m "Update state $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            git pull --rebase --autostash || true
             git push
           else
-            echo "No snapshot changes"
+            echo "No changes"
           fi

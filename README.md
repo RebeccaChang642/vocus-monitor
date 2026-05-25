@@ -25,7 +25,7 @@
 - `check_vocus.py`：主程式
 - `.github/workflows/check.yml`：定時排程
 - `requirements.txt`：Python 套件
-- `snapshot.txt` / `snapshot.hash`：自動產生的快照（不要手動編輯）
+- `snapshot.json`：自動產生的狀態快照（不要手動編輯）
 
 ## 本地測試
 
