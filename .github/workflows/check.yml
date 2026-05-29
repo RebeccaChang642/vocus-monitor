@@ -1,9 +1,9 @@
 name: Vocus Page Monitor
 
 on:
-  schedule:
-    - cron: "*/30 * * * *"   # 每 30 分鐘監控
-    - cron: "40 0 * * *"      # 每天 UTC 00:40 = 台灣時間 08:40 發日報（提前約20分鐘以吸收 GitHub 排程典型的15-25分鐘延遲，讓報告大致落在9點上下；fallback 視窗仍在 09:00）
+  # 排程觸發改由外部 cron-job.org 透過 workflow_dispatch API 呼叫
+  # （GitHub 內建 schedule 經實測延遲 15-45 分鐘且會丟事件，不適合本任務）
+  # 監控頻率 / 日報時間都在 cron-job.org 那邊設定
   workflow_dispatch:
 
 permissions:
@@ -36,7 +36,6 @@ jobs:
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
-          SEND_DAILY_REPORT: ${{ github.event.schedule == '40 0 * * *' }}
         run: python check_vocus.py
 
       - name: Commit state if changed
