@@ -1,15 +1,11 @@
 name: Vocus Page Monitor
 
 on:
-  # 排程觸發改由外部 cron-job.org 透過 workflow_dispatch API 呼叫
-  # （GitHub 內建 schedule 經實測延遲 15-45 分鐘且會丟事件，不適合本任務）
-  # 監控頻率 / 日報時間都在 cron-job.org 那邊設定
   workflow_dispatch:
 
 permissions:
   contents: write
 
-# 同一時間只跑一個 run，避免兩個 run 同時 commit 造成 push 衝突或重複發報
 concurrency:
   group: vocus-monitor
   cancel-in-progress: false
@@ -25,12 +21,25 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+
       - name: Install Playwright browser
-        run: playwright install chromium --with-deps
+        run: |
+          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" != "true" ]; then
+            playwright install chromium
+          fi
+          playwright install-deps chromium
 
       - name: Run monitor script
         env:
