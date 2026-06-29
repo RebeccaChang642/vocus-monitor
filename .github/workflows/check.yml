@@ -36,9 +36,7 @@ jobs:
 
       - name: Install Playwright browser
         run: |
-          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" != "true" ]; then
-            playwright install chromium
-          fi
+          playwright install chromium
           playwright install-deps chromium
 
       - name: Run monitor script
