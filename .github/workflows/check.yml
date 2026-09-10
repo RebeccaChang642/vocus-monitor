@@ -16,10 +16,10 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: "pip"
@@ -30,15 +30,26 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
 
       - name: Install Playwright browser
         run: |
-          playwright install chromium
-          playwright install-deps chromium
+          max_attempts=3
+          attempt=1
+          until playwright install chromium && playwright install-deps chromium; do
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "Playwright browser install failed after $max_attempts attempts. Giving up."
+              exit 1
+            fi
+            backoff=$((attempt * 10))
+            echo "Playwright browser install failed (attempt $attempt/$max_attempts). Retrying in ${backoff}s..."
+            sleep "$backoff"
+            attempt=$((attempt + 1))
+          done
+          echo "Playwright browser install succeeded on attempt $attempt/$max_attempts."
 
       - name: Run monitor script
         env:
